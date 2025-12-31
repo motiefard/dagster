@@ -24,7 +24,7 @@ def raw_news_articles(context):
 @asset(
     description="cleaned and normalized",
 )
-def cleaned_news_articles(raw_news_articles):
+def cleaned_news_articles(raw_news_articles, context):
     """transform data into clean format """
     
     cleaned = []
@@ -39,4 +39,11 @@ def cleaned_news_articles(raw_news_articles):
                 "published_at": article["published_at"],
             }
         )
+    
+    context.add_output_metedata(
+        {
+            "clean_article_count": len(cleaned),
+            "sources": list({a["source"] for a in cleaned}),
+        }
+    )
     return cleaned
