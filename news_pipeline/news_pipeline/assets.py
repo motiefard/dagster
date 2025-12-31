@@ -2,7 +2,7 @@ from dagster import asset, MetadataValue
 from datetime import datetime
 
 @asset(
-    description="Raw news articles fetched from the News API",
+    description="raw news articles fetched from the News API",
     required_resource_keys={"news_api"},
 )
 def raw_news_articles(context):
@@ -24,7 +24,7 @@ def raw_news_articles(context):
 @asset(
     description="cleaned and normalized",
 )
-def cleaned_news_articles(raw_news_articles, context):
+def cleaned_news_articles(context, raw_news_articles):
     """transform data into clean format """
     
     cleaned = []
