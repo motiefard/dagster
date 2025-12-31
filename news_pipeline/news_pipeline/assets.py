@@ -1,5 +1,6 @@
 from dagster import asset, MetadataValue
 from datetime import datetime
+from collections import Counter
 
 @asset(
     description="raw news articles fetched from the News API",
@@ -47,3 +48,42 @@ def cleaned_news_articles(context, raw_news_articles):
         }
     )
     return cleaned
+
+
+@asset(
+    description="analise data",
+)
+def daily_news_analytics(context, cleaned_news_articles):
+    """calc high-level analytics"""
+    total_articles = len(cleaned_news_articles)
+
+    #count articles:
+    articles_per_source = Counter(
+        article['source'] for article in cleaned_news_articles
+    )
+
+    # count most common words in titles
+    word_counter = Counter()
+
+    for article in cleaned_news_articles:
+        words = article["title"].lower().split()
+        word_counter.update(words)
+
+    top_words = word_counter.most_common(5)
+
+    res_analytics = {
+        "total_articles": total_articles,
+        "articles_per_source": dict(articles_per_source),
+        "top_title_words": top_words,
+    }
+
+    context.add_output_metadata(
+        {
+            "total_articles": total_articles,
+            "sources": list(articles_per_source.keys()),
+            "top_word": top_words[0][0] if top_words else "N/A",
+        }
+    )
+
+    return res_analytics
+
