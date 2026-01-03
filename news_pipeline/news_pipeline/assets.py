@@ -1,6 +1,7 @@
 from dagster import asset, MetadataValue
 from datetime import datetime
 from collections import Counter
+import os
 
 @asset(
     description="raw news articles fetched from the News API",
@@ -41,7 +42,7 @@ def cleaned_news_articles(context, raw_news_articles):
             }
         )
     
-    context.add_output_metedata(
+    context.add_output_metadata(
         {
             "clean_article_count": len(cleaned),
             "sources": list({a["source"] for a in cleaned}),
@@ -86,4 +87,55 @@ def daily_news_analytics(context, cleaned_news_articles):
     )
 
     return res_analytics
+
+
+@asset(
+    description="Human-readable report - in Markdown format",
+)
+def daily_news_report(context, daily_news_analytics):
+    report_date = datetime.utcnow().strftime("%Y-%m-%d")
+    filename = f"daily_news_report_{report_date}.md"
+    filepath = os.path.join("reports", filename)
+
+    # build content as markdown 
+    lines = [
+        "#  Daily News Report",
+        "",
+        f"**Date:** {report_date}",
+        "",
+        f"## Total Articles",
+        f"{daily_news_analytics['total_articles']}",
+        "",
+        "## Articles per Source",
+    ]
+
+    for source, count in daily_news_analytics["articles_per_source"].items():
+        lines.append(f"- **{source}**: {count}")
+
+    lines.extend(
+        [
+            "",
+            "## Top Words in Titles",
+        ]
+    )
+
+    for word, count in daily_news_analytics["top_title_words"]:
+        lines.append(f"- {word} ({count})")
+
+    report_content = "\n".join(lines)
+
+    with open(filepath, "w", encoding="utf-8") as f:
+        f.write(report_content)
+
+    # add metadata for Dagster to know what happened
+    context.add_output_metadata(
+        {
+            "report_path": filepath,
+            "report_date": report_date,
+            "report_size_bytes": os.path.getsize(filepath),
+        }
+    )
+
+    return filepath
+
 
