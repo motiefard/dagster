@@ -6,17 +6,20 @@ import os
 @asset(
     description="raw news articles fetched from the News API",
     required_resource_keys={"news_api"},
+    config_schema={
+        "limit": int,
+    },
 )
 def raw_news_articles(context):
+    limit = context.op_config["limit"]
     # fetch raw data
-    articles = context.resources.news_api.fetch_articles(limit=5)
+    articles = context.resources.news_api.fetch_articles(limit=limit)
 
     # attach metadata
     context.add_output_metadata(
         {
             "article_count": len(articles),
             "fetched_at": datetime.utcnow().isoformat(),
-            "sample_title": articles[0]["title"] if articles else "No data",
         }
     )
 
