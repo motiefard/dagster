@@ -4,6 +4,8 @@ from news_pipeline import assets
 from .assets import raw_news_articles, cleaned_news_articles, daily_news_analytics, daily_news_report
 from .resources import news_api_resource
 from .schedules import daily_news_schedule
+from .sensors import new_articles_sensor
+from .jobs import news_pipeline_job
 
 all_assets = load_assets_from_modules([assets])
 
@@ -17,4 +19,6 @@ defs = Definitions(
         )
     },
     schedules=[daily_news_schedule],
+    sensors=[new_articles_sensor],
+    jobs=[news_pipeline_job],
 )
