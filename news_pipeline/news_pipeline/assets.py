@@ -1,9 +1,14 @@
-from dagster import asset, MetadataValue
+from dagster import asset, DailyPartitionsDefinition
 from datetime import datetime
 from collections import Counter
 import os
 
+daily_partitions = DailyPartitionsDefinition(
+    start_date="2025-01-01"
+)
+
 @asset(
+    partitions_def=daily_partitions,
     description="raw news articles fetched from the News API",
     required_resource_keys={"news_api"},
     config_schema={
@@ -11,6 +16,7 @@ import os
     },
 )
 def raw_news_articles(context):
+    partition_date = context.partition_key  # YYYY-MM-DD
     limit = context.op_config["limit"]
     # fetch raw data
     articles = context.resources.news_api.fetch_articles(limit=limit)
@@ -18,6 +24,7 @@ def raw_news_articles(context):
     # attach metadata
     context.add_output_metadata(
         {
+            "partition_date": partition_date,
             "article_count": len(articles),
             "fetched_at": datetime.utcnow().isoformat(),
         }
@@ -27,6 +34,7 @@ def raw_news_articles(context):
 
 
 @asset(
+    partitions_def=daily_partitions,
     description="cleaned and normalized",
 )
 def cleaned_news_articles(context, raw_news_articles):
@@ -47,6 +55,7 @@ def cleaned_news_articles(context, raw_news_articles):
     
     context.add_output_metadata(
         {
+            "partition_date": context.partition_key,
             "clean_article_count": len(cleaned),
             "sources": list({a["source"] for a in cleaned}),
         }
@@ -55,6 +64,7 @@ def cleaned_news_articles(context, raw_news_articles):
 
 
 @asset(
+    partitions_def=daily_partitions,
     description="analise data",
 )
 def daily_news_analytics(context, cleaned_news_articles):
@@ -76,6 +86,7 @@ def daily_news_analytics(context, cleaned_news_articles):
     top_words = word_counter.most_common(5)
 
     res_analytics = {
+        "partition_date": context.partition_key,
         "total_articles": total_articles,
         "articles_per_source": dict(articles_per_source),
         "top_title_words": top_words,
@@ -93,9 +104,11 @@ def daily_news_analytics(context, cleaned_news_articles):
 
 
 @asset(
+    partitions_def=daily_partitions,
     description="Human-readable report - in Markdown format",
 )
 def daily_news_report(context, daily_news_analytics):
+    date = context.partition_key
     report_date = datetime.utcnow().strftime("%Y-%m-%d")
     filename = f"daily_news_report_{report_date}.md"
     filepath = os.path.join("reports", filename)
@@ -133,8 +146,9 @@ def daily_news_report(context, daily_news_analytics):
     # add metadata for Dagster to know what happened
     context.add_output_metadata(
         {
+            "partition_date": date,
             "report_path": filepath,
-            "report_date": report_date,
+            # "report_date": report_date,
             "report_size_bytes": os.path.getsize(filepath),
         }
     )

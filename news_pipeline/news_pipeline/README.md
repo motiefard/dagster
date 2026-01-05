@@ -52,7 +52,7 @@ daily_news_report (daily)
 * **Jobs** define execution
 * **Schedules** automate time-based runs
 * **Sensors** react to events
-<!-- * **Partitions** model data by day -->
+* **Partitions** model data by day
 
 ---
 
@@ -247,7 +247,7 @@ If you understand and can explain this project, you are:
 * Ready to work on real production pipelines
 
 ---
-<!-- 
+
 ## 🔜 Possible Next Steps
 
 * STEP 9 — Testing (assets, resources, sensors)
@@ -256,7 +256,7 @@ If you understand and can explain this project, you are:
 * Add data quality checks
 * Deploy Dagster to cloud infrastructure
 
---- -->
+---
 
 **Built for learning Dagster the right way.** 🚀
 **Asset-first. Observable. Reliable.**
