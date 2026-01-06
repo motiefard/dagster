@@ -1,0 +1,42 @@
+# dagster.yaml
+instance:
+  module: dagster.core.instance
+  class: DagsterInstance
+  config:
+    some_key:
+      env: venv
+
+run_storage:
+  module: dagster._core.storage.runs
+  class: SqliteRunStorage
+  config:
+    base_dir: ~/.dagster_home/history
+
+event_log_storage:
+  module: dagster._core.storage.event_log
+  class: SqliteEventLogStorage
+  config:
+    base_dir: ~/dagster_home/history
+
+schedule_storage:
+  module: dagster._core.storage.schedules
+  class: SqliteScheduleStorage
+  config:
+    base_dir: ~/dagster_home/history
+
+local_artifact_storage:
+  module: dagster._core.storage.root
+  class: LocalArtifactStorage
+  config:
+    base_dir: ~/dagster_home/artifacts
+
+compute_logs:
+  module: dagster._core.storage.compute_log_manager
+  class: LocalComputeLogManager
+  config:
+    base_dir: ~/dagster_home/compute_logs
+
+daemon:
+  enabled: true
+
+

@@ -1,2 +1,3 @@
 venv
 news_pipeline/.tmp_*
+news_pipeline/reports/*.md
